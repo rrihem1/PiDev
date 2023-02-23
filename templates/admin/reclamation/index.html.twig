@@ -1,0 +1,105 @@
+{% extends './admin/layout.html.twig' %}
+
+
+    {% block body %}
+
+        <div class="page-section pt-5">
+        <div class="container">
+
+        <table class="table table-hover mb-5 ">
+            <thead>
+            <tr>
+
+                <th>Titre</th>
+                <th>Message recu</th>
+                <th>Etat</th>
+                <th>Actions</th>
+                <th>Message à envoyé</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for reclamation in reclamations %}
+                <tr>
+
+                    <td>{{ reclamation.titre }}</td>
+                    <td>
+                        <!-- Button trigger modal -->
+                        <button type="button" class="btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModalCenter{{ reclamation.id }}">
+                            <i class="fa fa-comment" aria-hidden="true"></i>
+                        </button>
+
+                        <div class="modal fade" id="exampleModalCenter{{ reclamation.id }}" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered" role="document">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h6 class="modal-title" id="exampleModalLongTitle">Message envoyé</h6>
+                                        <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+                                    <div class="modal-body">
+                                        {{ reclamation.message }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    <td>
+                        <label>
+                            <select class="etat-select" , data-id="{{ reclamation.id }}">
+                                <option value="0" {% if not reclamation.etat %}selected{% endif %}>En cours</option>
+                                <option value="1" {% if reclamation.etat %}selected{% endif %}>Terminé</option>
+                            </select>
+                        </label>
+                    </td>
+
+
+                    <td>
+
+                        {{ include('admin/reclamation/_delete_reclamation.html.twig') }}
+                    </td>
+                    <td>
+
+
+                        <a href="{{ path('app_admin_reponse_new') }}">Repandre</a>
+                    </td>
+
+
+
+                </tr>
+
+
+            {% else %}
+                <tr>
+                    <td colspan="5">no records found</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+
+        </div>
+        </div>
+
+    {% endblock %}
+
+{% block javascripts %}
+    <script>
+        const etatSelects = document.querySelectorAll('.etat-select');
+        etatSelects.forEach(select => {
+            select.addEventListener('change', function() {
+                const reclamationId = this.getAttribute('data-id');
+                const newEtat = this.value;
+                const xhr = new XMLHttpRequest();
+                xhr.open('POST', '/admin/reclamations/' + reclamationId + '/changer-etat');
+                xhr.setRequestHeader('Content-Type', 'application/json');
+                xhr.onload = function() {
+                    if (xhr.status === 200) {
+                        console.log('État changé avec succès.');
+                    } else {
+                        console.error('Une erreur est survenue.');
+                    }
+                };
+                xhr.send(JSON.stringify({etat: newEtat}));
+            });
+        });
+    </script>
+{% endblock %}
